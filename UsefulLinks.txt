@@ -1,0 +1,14 @@
+Move Source Code:
+https://github.com/move-language/move/tree/main/language/move-stdlib/sources
+
+Move Book:
+https://github.com/move-language/move/tree/main/language/documentation/book/src
+
+Sui Book:
+https://intro.sui-book.com/unit-two/lessons/3_parameter_passing_and_object_deletion.html
+
+Sui Move Source Code:
+https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/packages/sui-framework/sources
+
+Sui Move Test Functions:
+https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/test/test_scenario.move
