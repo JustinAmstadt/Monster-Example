@@ -1,12 +1,9 @@
 module monster::monster {
     use std::string;
-    use sui::object::{Self, ID, UID};
     use sui::event;
-    use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
 
     /// An example NFT that can be minted by anybody
-    struct Monster has key, store {
+    public struct Monster has key, store {
         id: UID,
         isOriginal: bool,
         name: string::String,
@@ -16,7 +13,7 @@ module monster::monster {
 
     // ===== Events =====
 
-    struct NFTMinted has copy, drop {
+    public struct NFTMinted has copy, drop {
         object_id: ID,
         creator: address,
         name: string::String,
@@ -44,7 +41,8 @@ module monster::monster {
     // ===== Entrypoints =====
 
     /// Create a new devnet_nft
-    public fun mint_to_sender(
+    public fun mint_to_address(
+        recipient: address,
         name: string::String,
         description: string::String,
         cry: string::String,
@@ -66,16 +64,56 @@ module monster::monster {
             isOriginal: true,
         };
 
-        copy_nft_to_sender(&nft, ctx);
+        copy_nft_to_address(recipient, &nft, ctx);
 
         event::emit(mintEvent);
-        transfer::public_transfer(nft, sender);
+        transfer::public_transfer(nft, recipient);
     }
 
-    fun copy_nft_to_sender(monster: &Monster, ctx: &mut TxContext) {
+    /// Transfer `nft` to `recipient`
+    public fun transfer(
+        nft: Monster, recipient: address, _: &mut TxContext
+    ) {
+        transfer::public_transfer(nft, recipient)
+    }
+
+    public fun update_name(
+        nft: &mut Monster,
+        new_name: string::String,
+        _: &mut TxContext
+    ) {
+        nft.name = new_name;
+    }
+
+    public fun update_description(
+        nft: &mut Monster,
+        new_description: string::String,
+        _: &mut TxContext
+    ) {
+        nft.description = new_description;
+    }
+
+    public fun update_cry(
+        nft: &mut Monster,
+        new_cry: string::String,
+        _: &mut TxContext
+    ) {
+        nft.cry = new_cry;
+    }
+
+    /// Permanently delete `nft`
+    public fun burn(nft: Monster, _: &mut TxContext) {
+        let Monster { id, isOriginal: _, name: _, description: _, cry: _, } = nft;
+        object::delete(id)
+    }
+
+    // ===== Private Functions =====
+
+    /// Creates a copy of the monster and sets isOriginal to false
+    fun copy_nft_to_address(recipient: address, monster: &Monster, ctx: &mut TxContext) {
         let sender = tx_context::sender(ctx);
 
-        let name: string::String = *name(monster);
+        let mut name: string::String = *name(monster);
         let append: vector<u8> = b" Copy";
         let appendStr: string::String = string::utf8(append);
 
@@ -97,28 +135,6 @@ module monster::monster {
         };
 
         event::emit(mintEvent);
-        transfer::public_transfer(copyMon, sender);
-    }
-
-    /// Transfer `nft` to `recipient`
-    public fun transfer(
-        nft: Monster, recipient: address, _: &mut TxContext
-    ) {
-        transfer::public_transfer(nft, recipient)
-    }
-
-    /// Update the `description` of `nft` to `new_description`
-    public fun update_description(
-        nft: &mut Monster,
-        new_description: vector<u8>,
-        _: &mut TxContext
-    ) {
-        nft.description = string::utf8(new_description)
-    }
-
-    /// Permanently delete `nft`
-    public fun burn(nft: Monster, _: &mut TxContext) {
-        let Monster { id, isOriginal: _, name: _, description: _, cry: _, } = nft;
-        object::delete(id)
+        transfer::public_transfer(copyMon, recipient);
     }
 }
